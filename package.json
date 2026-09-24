@@ -1,0 +1,32 @@
+{
+  "name": "adopcion-de-mascotas-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+    "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nataly202004/Adopcion-de-Mascotas-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Nataly202004/Adopcion-de-Mascotas-/issues"
+  },
+  "homepage": "https://github.com/Nataly202004/Adopcion-de-Mascotas-#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.3",
+    "express": "^5.2.1",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
