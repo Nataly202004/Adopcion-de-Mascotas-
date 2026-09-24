@@ -1,0 +1,21 @@
+### Prueba de Registro de Usuario
+POST http://localhost:3000/api/usuarios/registro
+Content-Type: application/json
+
+{
+  "nombre_completo": "Cristina Alfonso",
+  "correo": "criss@correo.com",
+  "contrasena": "cristinaalfonso123"}
+
+
+
+###
+
+### Prueba de Inicio de Sesión (Login)
+POST http://localhost:3000/api/usuarios/login
+Content-Type: application/json
+
+{
+  "correo": "criss@correo.com",
+  "contrasena": "cristinaalfonso123"
+}
