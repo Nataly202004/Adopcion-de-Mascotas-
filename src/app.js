@@ -11,8 +11,15 @@ app.use(express.json());
 app.use('/api/mascotas', mascotasRouter);
 app.use('/api/usuarios', usuariosRouter);
 
+const path = require('path');
 app.get('/', (req, res) => {
-    res.json({ mensaje: 'API de Adopción de Mascotas funcionando correctamente' });
+    res.sendFile(path.join(__dirname, '../index.html'));
 });
 
+
 module.exports = app;
+
+app.get('/catalogo', (req, res) => {
+    res.sendFile(path.join(__dirname, '../catalogo.html'));
+});
+

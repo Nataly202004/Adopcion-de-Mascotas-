@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Mascotas Disponibles</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <!-- Barra de Navegación Superior -->
+    <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl">🐾</span>
+            <span class="text-xl font-black text-indigo-600">Huellas Felices</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nombreUsuario" class="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full">Cargando...</span>
+            <button onclick="cerrarSesion()" class="text-sm font-bold text-red-500 hover:text-red-700 transition-all">Cerrar Sesión</button>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-800">Mascotas en Adopción</h1>
+            <p class="text-gray-500 mt-1">Encuentra a tu compañero ideal y dale un hogar lleno de amor.</p>
+        </div>
+
+        <!-- Contenedor de Tarjetas -->
+        <div id="contenedorMascotas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p class="text-gray-500 col-span-full text-center py-12">Buscando animalitos disponibles en la base de datos...</p>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const sesion = localStorage.getItem('usuarioLogueado');
+            if (!sesion) {
+                alert("No has iniciado sesión. Redirigiendo al login.");
+                window.location.href = '/';
+                return;
+            }
+
+            const usuario = JSON.parse(sesion);
+            document.getElementById('nombreUsuario').innerText = `👤 ${usuario.nombre_completo}`;
+
+            try {
+                // LLamamos a tu URL del backend
+               const respuesta = await fetch('/api/mascotas');
+
+                const mascotas = await respuesta.json();
+                const contenedor = document.getElementById('contenedorMascotas');
+                contenedor.innerHTML = ''; 
+
+                if (mascotas.length === 0) {
+                    contenedor.innerHTML = `<p class="text-gray-500 col-span-full text-center py-12">Por el momento no hay mascotas registradas. ¡Vuelve pronto!</p>`;
+                    return;
+                }
+
+                mascotas.forEach(mascota => {
+                    const tarjeta = `
+                        <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-200">
+                            <div class="bg-indigo-100 h-48 flex items-center justify-center text-5xl">
+                                ${mascota.especie.toLowerCase() === 'perro' ? '🐶' : '🐱'}
+                            </div>
+                            <div class="p-6">
+                                <div class="flex justify-between items-baseline mb-2">
+                                    <h2 class="text-xl font-bold text-gray-800">${mascota.nombre}</h2>
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${mascota.estado || 'Disponible'}</span>
+                                </div>
+                                <p class="text-sm font-semibold text-indigo-600 mb-3">${mascota.raza} • ${mascota.edad} años</p>
+                                <p class="text-gray-600 text-sm mb-4">${mascota.descripcion}</p>
+                                <button onclick="solicitarAdopcion(${mascota.id_mascota})" 
+                                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition-all text-sm shadow-md">
+                                    Me interesa Adoptar 🐾
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.innerHTML += tarjeta;
+                });
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('contenedorMascotas').innerHTML = `<p class="text-red-500 col-span-full text-center py-12">Error al conectar con el servidor.</p>`;
+            }
+        });
+
+        function solicitarAdopcion(id) {
+            alert(`¡Solicitud enviada! Has registrado interés en adoptar a la mascota con ID #${id}.`);
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioLogueado');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

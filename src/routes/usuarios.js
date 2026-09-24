@@ -4,26 +4,26 @@ const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 
 // 1. REGISTRO DE USUARIO
+// 1. REGISTRO DE USUARIO
 router.post('/registro', async (req, res) => {
-    const { nombre_completo, correo, contrasena } = req.body;
+    // Añadimos "rol" aquí:
+    const { nombre_completo, correo, contrasena, rol } = req.body;
     try {
-        // Encriptar la contraseña antes de guardarla
         const contrasenaEncriptada = await bcrypt.hash(contrasena, 10);
 
+        // Añadimos "rol || 'usuario'" al insertar en la base de datos:
         const nuevoUsuario = await pool.query(
-            'INSERT INTO usuario (nombre_completo, correo, contrasena) VALUES ($1, $2, $3) RETURNING id_usuario, nombre_completo, correo, rol',
-            [nombre_completo, correo, contrasenaEncriptada]
+            'INSERT INTO usuario (nombre_completo, correo, contrasena, rol) VALUES ($1, $2, $3, $4) RETURNING id_usuario, nombre_completo, correo, rol',
+            [nombre_completo, correo, contrasenaEncriptada, rol || 'usuario']
         );
 
-        res.status(201).json(nuevoUsuario.rows[0]);
+        res.status(201).json(nuevoUsuario.rows);
     } catch (error) {
         console.error(error);
-        if (error.code === '23505') { // Error de correo duplicado en PostgreSQL
-            return res.status(400).json({ error: 'El correo ya está registrado' });
-        }
         res.status(500).json({ error: 'Error al registrar el usuario' });
     }
 });
+
 
 // 2. INICIO DE SESIÓN (LOGIN)
 router.post('/login', async (req, res) => {
