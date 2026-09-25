@@ -22,4 +22,10 @@ module.exports = app;
 app.get('/catalogo', (req, res) => {
     res.sendFile(path.join(__dirname, '../catalogo.html'));
 });
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../admin.html'));
+});
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../admin.html'));
+});
 

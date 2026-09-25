@@ -4,32 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Mascotas Disponibles</title>
-    <script src="https://tailwindcss.com"></script>
+    <style>
+        /* FONDO VERDE AGUA LLAMATIVO Y FRESCO */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #a7f3d0 0%, #ccfbf1 50%, #f0fdfa 100%); min-height: 100vh; color: #0f172a; margin: 0; padding: 0; }
+        nav { background-color: #ffffff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(13, 148, 136, 0.08); }
+        .logo { font-size: 22px; font-weight: 800; color: #0d9488; display: flex; align-items: center; gap: 8px; }
+        .usuario-info { display: flex; align-items: center; gap: 15px; }
+        .nombre-user { font-size: 14px; font-weight: 600; color: #115e59; background-color: #ccfbf1; padding: 6px 14px; border-radius: 20px; border: 1px solid #99f6e4; }
+        .btn-cerrar { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-cerrar:hover { text-decoration: underline; }
+        
+        /* CENTRAMOS TODO EL CONTENIDO PRINCIPAL */
+        main { max-width: 1050px; margin: 40px auto; padding: 0 20px; text-align: center; }
+        h1 { margin: 0 auto 5px auto; color: #115e59; font-size: 38px; font-weight: 900; text-align: center; }
+        .subtitulo { color: #0f766e; margin: 0 auto 35px auto; font-size: 16px; font-weight: 500; text-align: center; }
+        
+        /* CENTRAMOS LA GRILLA DE LAS TARJETAS */
+        .grid { display: flex; justify-content: center; flex-wrap: wrap; gap: 30px; margin: 0 auto; }
+        
+        /* DISEÑO DE LA TARJETA BLANCA RESALTADA */
+        .tarjeta { background-color: #ffffff; border-radius: 24px; box-shadow: 0 10px 30px rgba(13, 148, 136, 0.1); overflow: hidden; border: 1px solid rgba(255,255,255,0.8); width: 320px; display: flex; flex-direction: column; text-align: left; transition: transform 0.3s; }
+        .tarjeta:hover { transform: translateY(-8px); }
+        
+        /* CONTENEDOR DE LA FOTO EN GRIS/MENTA LIMPIO */
+        .foto-contenedor { background-color: #e6f4f1; height: 200px; width: 100%; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #e6f4f1; font-size: 70px; }
+        
+        .info { padding: 26px; flex-grow: 1; display: flex; flex-direction: column; }
+        .nombre-contenedor { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .nombre { margin: 0; font-size: 26px; font-weight: 800; color: #0f172a; }
+        .estado { background-color: #ccfbf1; color: #115e59; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #99f6e4; }
+        .raza { color: #0d9488; margin: 0 0 14px 0; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; }
+        .desc { color: #475569; font-size: 14.5px; line-height: 1.6; margin-bottom: 24px; }
+        
+        /* BOTÓN TURQUESA INTENSO QUE RESALTA */
+        .btn-adoptar { width: 100%; background-color: #0d9488; color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 16px; transition: background-color 0.2s; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
+        .btn-adoptar:hover { background-color: #115e59; }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body>
 
     <!-- Barra de Navegación Superior -->
-    <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <span class="text-2xl">🐾</span>
-            <span class="text-xl font-black text-indigo-600">Huellas Felices</span>
+    <nav>
+        <div class="logo">
+            <span>🐾</span> Huellas Felices
         </div>
-        <div class="flex items-center space-x-4">
-            <span id="nombreUsuario" class="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full">Cargando...</span>
-            <button onclick="cerrarSesion()" class="text-sm font-bold text-red-500 hover:text-red-700 transition-all">Cerrar Sesión</button>
+        <div class="usuario-info">
+            <span id="nombreUsuario" class="nombre-user">Cargando...</span>
+            <button onclick="cerrarSesion()" class="btn-cerrar">Cerrar Sesión</button>
         </div>
     </nav>
 
     <!-- Contenido Principal -->
-    <main class="max-w-6xl mx-auto px-4 py-8">
-        <div class="mb-8">
-            <h1 class="text-3xl font-extrabold text-gray-800">Mascotas en Adopción</h1>
-            <p class="text-gray-500 mt-1">Encuentra a tu compañero ideal y dale un hogar lleno de amor.</p>
-        </div>
+    <main>
+        <h1>Mascotas en Adopción</h1>
+        <p class="subtitulo">Encuentra a tu compañero ideal y dale un hogar lleno de amor.</p>
 
-        <!-- Contenedor de Tarjetas -->
-        <div id="contenedorMascotas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <p class="text-gray-500 col-span-full text-center py-12">Buscando animalitos disponibles en la base de datos...</p>
+        <!-- Contenedor Centrado de Tarjetas -->
+        <div id="contenedorMascotas" class="grid">
+            <p style="color: #0f766e; font-weight: bold;">Buscando animalitos...</p>
         </div>
     </main>
 
@@ -46,33 +78,30 @@
             document.getElementById('nombreUsuario').innerText = `👤 ${usuario.nombre_completo}`;
 
             try {
-                // LLamamos a tu URL del backend
-               const respuesta = await fetch('/api/mascotas');
-
+                const respuesta = await fetch('/api/mascotas');
                 const mascotas = await respuesta.json();
                 const contenedor = document.getElementById('contenedorMascotas');
                 contenedor.innerHTML = ''; 
 
                 if (mascotas.length === 0) {
-                    contenedor.innerHTML = `<p class="text-gray-500 col-span-full text-center py-12">Por el momento no hay mascotas registradas. ¡Vuelve pronto!</p>`;
+                    contenedor.innerHTML = `<p style="color: #0f766e; font-weight: bold;">Por el momento no hay mascotas registradas.</p>`;
                     return;
                 }
 
                 mascotas.forEach(mascota => {
                     const tarjeta = `
-                        <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-200">
-                            <div class="bg-indigo-100 h-48 flex items-center justify-center text-5xl">
-                                ${mascota.especie.toLowerCase() === 'perro' ? '🐶' : '🐱'}
+                        <div class="tarjeta">
+                            <div class="foto-contenedor">
+                                🐶
                             </div>
-                            <div class="p-6">
-                                <div class="flex justify-between items-baseline mb-2">
-                                    <h2 class="text-xl font-bold text-gray-800">${mascota.nombre}</h2>
-                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${mascota.estado || 'Disponible'}</span>
+                            <div class="info">
+                                <div class="nombre-contenedor">
+                                    <h2 class="nombre">${mascota.nombre}</h2>
+                                    <span class="estado">${mascota.estado || 'Disponible'}</span>
                                 </div>
-                                <p class="text-sm font-semibold text-indigo-600 mb-3">${mascota.raza} • ${mascota.edad} años</p>
-                                <p class="text-gray-600 text-sm mb-4">${mascota.descripcion}</p>
-                                <button onclick="solicitarAdopcion(${mascota.id_mascota})" 
-                                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition-all text-sm shadow-md">
+                                <p class="raza">${mascota.raza} • ${mascota.edad} años</p>
+                                <p class="desc">${mascota.descripcion}</p>
+                                <button onclick="solicitarAdopcion(${mascota.id_mascota})" class="btn-adoptar">
                                     Me interesa Adoptar 🐾
                                 </button>
                             </div>
@@ -83,12 +112,12 @@
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('contenedorMascotas').innerHTML = `<p class="text-red-500 col-span-full text-center py-12">Error al conectar con el servidor.</p>`;
+                document.getElementById('contenedorMascotas').innerHTML = `<p style="color: #ef4444;">Error al conectar con el servidor.</p>`;
             }
         });
 
         function solicitarAdopcion(id) {
-            alert(`¡Solicitud enviada! Has registrado interés en adoptar a la mascota con ID #${id}.`);
+            alert(`¡Solicitud enviada! Tu interés por la mascota con ID #${id} ha sido registrado. El administrador se contactará contigo.`);
         }
 
         function cerrarSesion() {
