@@ -89,14 +89,10 @@
         </div>
     </div>
 
-    <script>
-        const API_BASE = (() => {
-            if (window.location.protocol === 'file:') {
-                return 'http://localhost:3000';
-            }
+      <script>
+        // Configuración de tu Backend de producción en Vercel
+        const API_BASE = 'https://adopcion-de-mascotas-seven.vercel.app';
 
-            return window.location.origin;
-        })();
 
         function apiUrl(path) {
             return `${API_BASE}${path}`;
@@ -144,54 +140,51 @@
                     alerta.style.border = '1px solid #a7f3d0';
                     alerta.style.display = 'block';
                     localStorage.setItem('usuarioLogueado', JSON.stringify(datos.usuario));
-                    setTimeout(() => { window.location.href = '/catalogo'; }, 1500);
+                    setTimeout(() => { window.location.href = './catalogo.html'; }, 1500);
                 } else {
                     mostrarError(alerta, datos.error || 'Credenciales incorrectas');
                 }
             } catch (error) {
                 console.error('Error de conexión:', error);
-                const mensaje = window.location.protocol === 'file:'
-                    ? 'No hay servidor activo. Ejecuta: npm start y abre http://localhost:3000'
-                    : 'Error de conexión. Revisa que el servidor esté ejecutándose.';
-                mostrarError(alerta, mensaje);
+                mostrarError(alerta, 'Error de conexión. Revisa que el servidor esté ejecutándose.');
             }
         });
 
         document.getElementById('registroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nombres = document.getElementById('nombreRegistro').value.trim();
-            const apellidos = document.getElementById('apellidoRegistro').value.trim();
+            const nombre = document.getElementById('nombreRegistro').value.trim();
+            const apellido = document.getElementById('apellidoRegistro').value.trim();
             const correo = document.getElementById('correoRegistro').value.trim();
             const contrasena = document.getElementById('contrasenaRegistro').value;
             const alerta = document.getElementById('alertaRegistro');
             alerta.style.display = 'none';
 
-            const nombre_completo = `${nombres} ${apellidos}`;
-
             try {
                 const respuesta = await fetch(apiUrl('/api/usuarios/registro'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre_completo, correo, contrasena, rol: 'usuario' })
+                    body: JSON.stringify({ 
+                        nombre_completo: `${nombre} ${apellido}`, 
+                        correo, 
+                        contrasena 
+                    })
                 });
 
+                const datos = await respuesta.json();
+
                 if (respuesta.ok) {
-                    alerta.innerText = `¡Registro exitoso! Ya puedes iniciar sesión. ✨`;
+                    alerta.innerText = '¡Cuenta creada con éxito! Redirigiendo... ✨';
                     alerta.style.backgroundColor = '#d1fae5';
                     alerta.style.color = '#065f46';
                     alerta.style.border = '1px solid #a7f3d0';
                     alerta.style.display = 'block';
-                    document.getElementById('registroForm').reset();
-                    setTimeout(() => { mostrarLogin(); }, 2000);
+                    setTimeout(() => { mostrarLogin(); }, 1500);
                 } else {
-                    mostrarError(alerta, 'El correo ya está registrado');
+                    mostrarError(alerta, datos.error || 'No se pudo crear la cuenta');
                 }
             } catch (error) {
                 console.error('Error de conexión:', error);
-                const mensaje = window.location.protocol === 'file:'
-                    ? 'No hay servidor activo. Ejecuta: npm start y abre http://localhost:3000'
-                    : 'Error de conexión. Revisa que el servidor esté ejecutándose.';
-                mostrarError(alerta, mensaje);
+                mostrarError(alerta, 'Error de conexión con el servidor.');
             }
         });
     </script>
