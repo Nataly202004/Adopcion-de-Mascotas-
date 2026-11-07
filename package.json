@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "nodemon --dns-result-order=ipv4first src/index.js",
     "start": "node src/index.js"
+      "dev": "nodemon index.js"
+
   },
   "engines": {
     "node": "22.x"
