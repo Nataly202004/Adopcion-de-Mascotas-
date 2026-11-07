@@ -33,7 +33,7 @@
 <body>
 
     <nav>
-        <div class="logo" onclick="irA('catalogo')">🐾 Huellas Felices</div>
+        <div class="logo" onclick="window.location.href='catalogo.html'">🐾 Huellas Felices</div>
         <div class="usuario-info">
             <span id="nombreUsuario" class="nombre-user">👑 Administrador</span>
             <button onclick="cerrarSesion()" class="btn-cerrar">Cerrar Sesión</button>
@@ -83,79 +83,69 @@
         </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
     <script>
-        // Dónde está el backend:
-        // - En local (Live Server, etc.): el servidor de desarrollo en el puerto 3000.
-        // - En GitHub Pages (solo sirve archivos estáticos): el despliegue de Vercel.
-        // - En cualquier otro caso (Vercel, Render): el mismo dominio que sirve la página.
-        const BACKEND_PRODUCCION = 'https://adopcion-de-mascotas-seven.vercel.app';
-        const ES_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-        const API_BASE = ES_LOCAL && window.location.port !== '3000'
-            ? 'http://localhost:3000'
-            : window.location.hostname.endsWith('github.io')
-                ? BACKEND_PRODUCCION
-                : window.location.origin;
-        // Si el backend no sirve esta página, sus rutas (/catalogo, /admin) no existen
-        // y hay que navegar por nombre de archivo.
-        const SERVIDA_POR_BACKEND = API_BASE === window.location.origin;
+        // Conexión directa con Supabase (el sitio se publica en GitHub Pages, que no
+        // ejecuta backend). La clave publishable es pública por diseño: lo que cada
+        // visitante puede hacer lo limitan las políticas RLS de supabase/setup.sql.
+        // Nunca pongas aquí la service_role key ni la contraseña de la base.
+        const SUPABASE_URL = 'https://ixagbxnskkhbkajlsaqg.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__JdwDHzW1iiCB0W0D126wg_GNxeDlLS';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-        function apiUrl(path) {
-            return `${API_BASE}${path}`;
+        function escaparHtml(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[c]);
         }
 
-        function irA(pagina) {
-            const rutas = SERVIDA_POR_BACKEND
-                ? { inicio: '/', catalogo: '/catalogo', admin: '/admin' }
-                : { inicio: 'index.html', catalogo: 'catalogo.html', admin: 'admin.html' };
-            window.location.href = rutas[pagina];
+        async function cerrarSesion() {
+            await sb.auth.signOut();
+            localStorage.removeItem('usuarioLogueado');
+            window.location.href = 'index.html';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const sesion = localStorage.getItem('usuarioLogueado');
-            if (!sesion) {
-                irA('inicio');
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
                 return;
             }
-            const usuario = JSON.parse(sesion);
-            document.getElementById('nombreUsuario').innerText = `👑 Admin: ${usuario.nombre_completo}`;
+            // El rol se consulta en la base, no en localStorage: el navegador no decide quién es admin.
+            const { data: perfil } = await sb
+                .from('perfil').select('nombre_completo, rol').eq('id', session.user.id).maybeSingle();
+            if (perfil?.rol !== 'admin') {
+                alert('Tu cuenta no tiene permisos de administrador.');
+                window.location.href = 'catalogo.html';
+                return;
+            }
+            document.getElementById('nombreUsuario').innerText = `👑 Admin: ${perfil.nombre_completo}`;
         });
 
         document.getElementById('mascotaForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nombre = document.getElementById('nombre').value;
-            const especie = document.getElementById('especie').value;
-            const raza = document.getElementById('raza').value;
-            const edad = parseInt(document.getElementById('edad').value);
-            const descripcion = document.getElementById('descripcion').value;
+            const nombre = document.getElementById('nombre').value.trim();
+            const especie = document.getElementById('especie').value.toLowerCase();
+            const raza = document.getElementById('raza').value.trim();
+            const edad = parseInt(document.getElementById('edad').value, 10);
+            const descripcion = document.getElementById('descripcion').value.trim();
             const alerta = document.getElementById('mensajeAlerta');
-            
             alerta.style.display = 'none';
 
-            try {
-                const respuesta = await fetch(apiUrl('/api/mascotas/registro'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, especie, raza, edad, descripcion })
-                });
+            const { error } = await sb.from('mascota').insert({ nombre, especie, raza, edad, descripcion });
 
-                if (respuesta.ok) {
-                    alerta.innerText = `¡${nombre} ha sido registrado(a) con éxito en el catálogo! ✨`;
-                    alerta.style.backgroundColor = '#d1fae5'; alerta.style.color = '#065f46'; alerta.style.border = '1px solid #a7f3d0'; alerta.style.display = 'block';
-                    document.getElementById('mascotaForm').reset();
-                } else {
-                    alerta.innerText = 'Error al registrar la mascota';
-                    alerta.style.backgroundColor = '#fee2e2'; alerta.style.color = '#991b1b'; alerta.style.display = 'block';
-                }
-            } catch (error) {
-                alerta.innerText = 'Error al conectar con el servidor';
-                alerta.style.display = 'block';
+            if (error) {
+                console.error('Error al registrar la mascota:', error);
+                alerta.innerText = error.code === '42501'
+                    ? 'Tu cuenta no tiene permisos de administrador.'
+                    : 'Error al registrar la mascota. Intenta nuevamente.';
+                alerta.style.backgroundColor = '#fee2e2'; alerta.style.color = '#991b1b'; alerta.style.border = '1px solid #fca5a5'; alerta.style.display = 'block';
+                return;
             }
+            alerta.innerText = `¡${nombre} ha sido registrado(a) con éxito en el catálogo! ✨`;
+            alerta.style.backgroundColor = '#d1fae5'; alerta.style.color = '#065f46'; alerta.style.border = '1px solid #a7f3d0'; alerta.style.display = 'block';
+            document.getElementById('mascotaForm').reset();
         });
-
-        function cerrarSesion() {
-            localStorage.removeItem('usuarioLogueado');
-            irA('inicio');
-        }
     </script>
 </body>
 </html>

@@ -178,92 +178,87 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
     <script>
-        // Dónde está el backend:
-        // - En local (Live Server, etc.): el servidor de desarrollo en el puerto 3000.
-        // - En GitHub Pages (solo sirve archivos estáticos): el despliegue de Vercel.
-        // - En cualquier otro caso (Vercel, Render): el mismo dominio que sirve la página.
-        const BACKEND_PRODUCCION = 'https://adopcion-de-mascotas-seven.vercel.app';
-        const ES_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-        const API_BASE = ES_LOCAL && window.location.port !== '3000'
-            ? 'http://localhost:3000'
-            : window.location.hostname.endsWith('github.io')
-                ? BACKEND_PRODUCCION
-                : window.location.origin;
-        // Si el backend no sirve esta página, sus rutas (/catalogo, /admin) no existen
-        // y hay que navegar por nombre de archivo.
-        const SERVIDA_POR_BACKEND = API_BASE === window.location.origin;
+        // Conexión directa con Supabase (el sitio se publica en GitHub Pages, que no
+        // ejecuta backend). La clave publishable es pública por diseño: lo que cada
+        // visitante puede hacer lo limitan las políticas RLS de supabase/setup.sql.
+        // Nunca pongas aquí la service_role key ni la contraseña de la base.
+        const SUPABASE_URL = 'https://ixagbxnskkhbkajlsaqg.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__JdwDHzW1iiCB0W0D126wg_GNxeDlLS';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-        function apiUrl(path) {
-            return `${API_BASE}${path}`;
+        function escaparHtml(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[c]);
         }
 
-        function irA(pagina) {
-            const rutas = SERVIDA_POR_BACKEND
-                ? { inicio: '/', catalogo: '/catalogo', admin: '/admin' }
-                : { inicio: 'index.html', catalogo: 'catalogo.html', admin: 'admin.html' };
-            window.location.href = rutas[pagina];
+        async function cerrarSesion() {
+            await sb.auth.signOut();
+            localStorage.removeItem('usuarioLogueado');
+            window.location.href = 'index.html';
         }
 
-        const animales = [
-            ['Luna', 'perro', 'Labrador', 2, 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600'],
-            ['Max', 'perro', 'Pastor alemán', 3, 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600'],
-            ['Coco', 'perro', 'Beagle', 1, 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=600'],
-            ['Rocky', 'perro', 'Boxer', 4, 'https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?q=80&w=580&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'],
-            ['Nala', 'perro', 'Golden retriever', 2, 'https://images.unsplash.com/photo-1558788353-f76d92427f16?w=600'],
-            ['Toby', 'perro', 'Mestizo', 5, 'https://images.unsplash.com/photo-1735989967755-706e5edcb44b?q=80&w=580&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'],
-            ['Maya', 'perro', 'Husky', 3, 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600'],
-            ['Bruno', 'perro', 'Bulldog', 4, 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600'],
-            ['Simba', 'perro', 'Cocker spaniel', 2, 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=600'],
-            ['Daisy', 'perro', 'Poodle', 1, 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600'],
-            ['Michi', 'gato', 'Gato doméstico', 2, 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600'],
-            ['Pelusa', 'gato', 'Persa', 3, 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=600'],
-            ['Oliver', 'gato', 'Atigrado', 1, 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=600'],
-            ['Milo', 'gato', 'Siamés', 2, 'https://images.unsplash.com/photo-1561948955-570b270e7c36?w=600'],
-            ['Canela', 'gato', 'Carey', 4, 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=600'],
-            ['Tom', 'gato', 'Mestizo', 5, 'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=600'],
-            ['Lola', 'gato', 'Angora', 2, 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600'],
-            ['Nina', 'gato', 'Gato blanco', 1, 'https://images.unsplash.com/photo-1495366822987-7c75f0fcbab4?w=600'],
-            ['Simón', 'gato', 'Gato negro', 3, 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=600'],
-            ['Cleo', 'gato', 'Gato tricolor', 2, 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=600']
-        ];
+        const FOTO_POR_DEFECTO = 'data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect width="100%" height="100%" fill="#ccfbf1"/><text x="50%" y="50%" font-size="120" text-anchor="middle" dominant-baseline="central">🐾</text></svg>'
+        );
+        let animales = [];
+        let tipoActual = 'todos';
+        let mascotaElegida = null;
+
+        async function cargarMascotas() {
+            const catalogo = document.getElementById('catalogo');
+            catalogo.innerHTML = '<p>Cargando mascotas...</p>';
+            const { data, error } = await sb
+                .from('mascota')
+                .select('id_mascota, nombre, especie, raza, edad, foto_url')
+                .eq('estado', 'disponible')
+                .order('id_mascota');
+            if (error) {
+                console.error('Error al cargar las mascotas:', error);
+                catalogo.innerHTML = '<p>No se pudieron cargar las mascotas. Recarga la página para intentarlo de nuevo.</p>';
+                return;
+            }
+            animales = data;
+            mostrarAnimales(tipoActual);
+        }
 
         function mostrarAnimales(tipo = 'todos') {
-            const catalogo = document.getElementById('catalogo');
-            catalogo.innerHTML = '';
-
-            animales
-                .filter(animal => tipo === 'todos' || animal[1] === tipo)
-                .forEach(animal => {
-                    const [nombre, especie, raza, edad, imagen] = animal;
-                    catalogo.innerHTML += `
-                        <article class="animal">
-                            <img src="${imagen}" alt="${nombre}">
-                            <div class="animal-info">
-                                <h3>${nombre}</h3>
-                                <p><strong>Especie:</strong> ${especie}</p>
-                                <p><strong>Raza:</strong> ${raza}</p>
-                                <p><strong>Edad:</strong> ${edad} año(s)</p>
-                                <button onclick="abrirModal('${nombre}')">
-                                    Me interesa adoptar
-                                </button>
-                            </div>
-                        </article>
-                    `;
-                });
+            const lista = animales.filter((a) => tipo === 'todos' || String(a.especie).toLowerCase() === tipo);
+            document.getElementById('catalogo').innerHTML = lista.length
+                ? lista.map((a) => `
+                    <article class="animal">
+                        <img src="${escaparHtml(a.foto_url || FOTO_POR_DEFECTO)}" alt="${escaparHtml(a.nombre)}">
+                        <div class="animal-info">
+                            <h3>${escaparHtml(a.nombre)}</h3>
+                            <p><strong>Especie:</strong> ${escaparHtml(a.especie)}</p>
+                            <p><strong>Raza:</strong> ${escaparHtml(a.raza || 'Sin especificar')}</p>
+                            <p><strong>Edad:</strong> ${escaparHtml(a.edad ?? '?')} año(s)</p>
+                            <button data-id="${a.id_mascota}">Me interesa adoptar</button>
+                        </div>
+                    </article>`).join('')
+                : '<p>No hay mascotas disponibles en esta categoría.</p>';
         }
 
         function filtrar(tipo, boton) {
-            document.querySelectorAll('.filtros button')
-                .forEach(btn => btn.classList.remove('activo'));
+            document.querySelectorAll('.filtros button').forEach((btn) => btn.classList.remove('activo'));
             boton.classList.add('activo');
+            tipoActual = tipo;
             mostrarAnimales(tipo);
         }
 
-        function abrirModal(nombre) {
-            document.getElementById('mascota').value = nombre;
+        document.getElementById('catalogo').addEventListener('click', (event) => {
+            const boton = event.target.closest('button[data-id]');
+            if (boton) abrirModal(Number(boton.dataset.id));
+        });
+
+        function abrirModal(idMascota) {
+            mascotaElegida = animales.find((a) => a.id_mascota === idMascota);
+            if (!mascotaElegida) return;
+            document.getElementById('mascota').value = mascotaElegida.nombre;
             document.getElementById('mascotaSeleccionada').textContent =
-                `Estás solicitando adoptar a: ${nombre}`;
+                `Estás solicitando adoptar a: ${mascotaElegida.nombre}`;
             document.getElementById('resultado').textContent = '';
             document.getElementById('modal').classList.add('visible');
         }
@@ -272,36 +267,39 @@
             document.getElementById('modal').classList.remove('visible');
         }
 
-        document.getElementById('formAdopcion').addEventListener('submit', async function(event) {
+        document.getElementById('formAdopcion').addEventListener('submit', async function (event) {
             event.preventDefault();
-
-            const datos = Object.fromEntries(new FormData(this));
             const resultado = document.getElementById('resultado');
+            const campos = Object.fromEntries(
+                [...new FormData(this)].map(([clave, valor]) => [clave, String(valor).trim()])
+            );
+            const boton = this.querySelector('button[type="submit"]');
+            boton.disabled = true;
 
-            try {
-                const respuesta = await fetch(apiUrl('/api/solicitudes/adopcion'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datos)
-                });
+            // Sin .select(): un visitante puede enviar solicitudes, pero no leerlas.
+            const { error } = await sb.from('solicitud_adopcion').insert({
+                id_mascota: mascotaElegida?.id_mascota ?? null,
+                mascota: mascotaElegida?.nombre || document.getElementById('mascota').value,
+                nombre: campos.nombre,
+                celular: campos.celular,
+                direccion: campos.direccion,
+                correo: campos.correo,
+                mensaje: campos.mensaje
+            });
+            boton.disabled = false;
 
-                if (!respuesta.ok) throw new Error();
-
-                resultado.style.color = '#047857';
-                resultado.textContent = 'Solicitud enviada correctamente. ¡Gracias!';
-                this.reset();
-            } catch {
+            if (error) {
+                console.error('Error al enviar la solicitud:', error);
                 resultado.style.color = '#b91c1c';
                 resultado.textContent = 'No se pudo enviar la solicitud. Intenta nuevamente.';
+                return;
             }
+            resultado.style.color = '#047857';
+            resultado.textContent = 'Solicitud enviada correctamente. ¡Gracias!';
+            this.reset();
         });
 
-        function cerrarSesion() {
-            localStorage.removeItem('usuarioLogueado');
-            irA('inicio');
-        }
-
-        mostrarAnimales();
+        cargarMascotas();
     </script>
 </body>
 </html>

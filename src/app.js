@@ -29,8 +29,10 @@ app.use('/api/mascotas', mascotasRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/solicitudes', solicitudesRouter);
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, '../index.html')));
-app.get('/catalogo', (req, res) => res.sendFile(path.join(__dirname, '../catalogo.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '../admin.html')));
+// Las páginas enlazan por nombre de archivo (catalogo.html) para funcionar también
+// en GitHub Pages, así que se sirven con y sin extensión.
+app.get(['/', '/index.html'], (req, res) => res.sendFile(path.join(__dirname, '../index.html')));
+app.get(['/catalogo', '/catalogo.html'], (req, res) => res.sendFile(path.join(__dirname, '../catalogo.html')));
+app.get(['/admin', '/admin.html'], (req, res) => res.sendFile(path.join(__dirname, '../admin.html')));
 
 module.exports = app;
