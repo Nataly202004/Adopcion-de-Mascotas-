@@ -154,7 +154,7 @@
                     alerta.style.border = '1px solid #a7f3d0';
                     alerta.style.display = 'block';
                     localStorage.setItem('usuarioLogueado', JSON.stringify(datos.usuario));
-                    setTimeout(() => { window.location.href = './catalogo.html'; }, 1500);
+                    setTimeout(() => { window.location.href = '/catalogo'; }, 1500);
                 } else {
                     mostrarError(alerta, datos.error || datos.message || `Error ${respuesta.status}: ${respuesta.statusText}`);
                 }
