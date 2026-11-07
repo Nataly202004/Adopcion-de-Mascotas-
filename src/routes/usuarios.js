@@ -1,51 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const pool = require('../config/db');
+const db = require('../config/db');
 
-// 1. REGISTRO DE USUARIO
-// 1. REGISTRO DE USUARIO
 router.post('/registro', async (req, res) => {
-    // Añadimos "rol" aquí:
-    const { nombre_completo, correo, contrasena, rol } = req.body;
+    const { nombre_completo, correo, contrasena } = req.body || {};
+    if (![nombre_completo, correo, contrasena].every((value) => typeof value === 'string' && value.trim())) {
+        return res.status(400).json({ error: 'Completa el nombre, correo y contraseña.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+        return res.status(400).json({ error: 'Ingresa un correo electrónico válido.' });
+    }
+    if (contrasena.length < 8) {
+        return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres.' });
+    }
+
     try {
         const contrasenaEncriptada = await bcrypt.hash(contrasena, 10);
-
-        // Añadimos "rol || 'usuario'" al insertar en la base de datos:
-        const nuevoUsuario = await pool.query(
-            'INSERT INTO usuario (nombre_completo, correo, contrasena, rol) VALUES ($1, $2, $3, $4) RETURNING id_usuario, nombre_completo, correo, rol',
-            [nombre_completo, correo, contrasenaEncriptada, rol || 'usuario']
-        );
-
-        res.status(201).json(nuevoUsuario.rows);
+        // El rol siempre se asigna en el servidor: el cliente no puede registrarse como admin.
+        const nuevoUsuario = await db.createUsuario({
+            nombre_completo: nombre_completo.trim(),
+            correo: correo.trim().toLowerCase(),
+            contrasena: contrasenaEncriptada,
+            rol: 'usuario'
+        });
+        return res.status(201).json(nuevoUsuario);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al registrar el usuario' });
+        if (error.code === '23505') {
+            return res.status(409).json({ error: 'Ya existe una cuenta con ese correo.' });
+        }
+        console.error('Error al registrar el usuario:', error);
+        if (error.code === 'DATABASE_URL_MISSING') {
+            return res.status(503).json({ error: 'La base de datos no está configurada.' });
+        }
+        return res.status(500).json({ error: 'Error al registrar el usuario' });
     }
 });
 
-
-// 2. INICIO DE SESIÓN (LOGIN)
 router.post('/login', async (req, res) => {
-    const { correo, contrasena } = req.body;
-    try {
-        // Buscar al usuario por correo
-        const usuarioDb = await pool.query('SELECT * FROM usuario WHERE correo = $1', [correo]);
+    const { correo, contrasena } = req.body || {};
+    if (typeof correo !== 'string' || typeof contrasena !== 'string' || !correo.trim() || !contrasena) {
+        return res.status(400).json({ error: 'Ingresa tu correo y contraseña.' });
+    }
 
-        if (usuarioDb.rows.length === 0) {
+    try {
+        const usuario = await db.findUsuarioByCorreo(correo.trim().toLowerCase());
+        if (!usuario) {
             return res.status(400).json({ error: 'Credenciales incorrectas' });
         }
 
-        // Comparar la contraseña ingresada con la encriptada en la BD
-        const usuario = usuarioDb.rows[0];
         const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
-
         if (!contrasenaValida) {
             return res.status(400).json({ error: 'Credenciales incorrectas' });
         }
 
-        // Login exitoso (enviamos los datos del usuario sin la contraseña)
-        res.json({
+        return res.json({
             mensaje: 'Inicio de sesión exitoso',
             usuario: {
                 id_usuario: usuario.id_usuario,
@@ -54,10 +63,12 @@ router.post('/login', async (req, res) => {
                 rol: usuario.rol
             }
         });
-
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error en el servidor al iniciar sesión' });
+        console.error('Error al iniciar sesión:', error);
+        if (error.code === 'DATABASE_URL_MISSING') {
+            return res.status(503).json({ error: 'La base de datos no está configurada.' });
+        }
+        return res.status(500).json({ error: 'Error en el servidor al iniciar sesión' });
     }
 });
 
