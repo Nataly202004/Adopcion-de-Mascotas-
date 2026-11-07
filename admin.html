@@ -1,151 +1,22 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huellas Felices - Panel de Administración</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #a7f3d0 0%, #ccfbf1 50%, #f0fdfa 100%); min-height: 100vh; color: #0f172a; margin: 0; padding: 0; }
-        nav { background-color: #ffffff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(13, 148, 136, 0.08); }
-        .logo { font-size: 22px; font-weight: 800; color: #0d9488; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .usuario-info { display: flex; align-items: center; gap: 15px; }
-        .nombre-user { font-size: 14px; font-weight: 600; color: #115e59; background-color: #ccfbf1; padding: 6px 14px; border-radius: 20px; border: 1px solid #99f6e4; }
-        .btn-cerrar { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 14px; }
-        
-        main { max-width: 600px; margin: 40px auto; padding: 0 20px; }
-        .tarjeta-admin { background: white; padding: 35px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(13, 148, 136, 0.1); border: 1px solid rgba(255,255,255,0.8); }
-        h1 { margin: 0 0 5px 0; color: #115e59; font-size: 32px; font-weight: 900; text-align: center; }
-        .subtitulo { color: #0f766e; margin: 0 0 30px 0; font-size: 15px; text-align: center; }
-        
-        .grupo-entrada { text-align: left; margin-bottom: 18px; }
-        .fila-doble { display: flex; gap: 15px; }
-        .fila-doble .grupo-entrada { flex: 1; }
-        label { display: block; font-size: 13px; font-weight: 700; color: #115e59; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select, textarea { width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 14.5px; color: #1e293b; background-color: #f8fafc; transition: all 0.2s; font-family: inherit; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #34d399; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
-        textarea { resize: vertical; min-height: 80px; }
-        
-        button { width: 100%; background: #0d9488; color: white; border: none; padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 10px; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2); }
-        button:hover { background: #115e59; }
-        .alerta { margin-top: 15px; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; text-align: center; display: none; }
-    </style>
-</head>
-<body>
-
-    <nav>
-        <div class="logo" onclick="window.location.href='catalogo.html'">🐾 Huellas Felices</div>
-        <div class="usuario-info">
-            <span id="nombreUsuario" class="nombre-user">👑 Administrador</span>
-            <button onclick="cerrarSesion()" class="btn-cerrar">Cerrar Sesión</button>
-        </div>
-    </nav>
-
-    <main>
-        <div class="tarjeta-admin">
-            <h1>Agregar Nueva Mascota</h1>
-            <p class="subtitulo">Ingresa los datos para registrar un nuevo animalito en el catálogo público.</p>
-
-            <form id="mascotaForm">
-                <div class="fila-doble">
-                    <div class="grupo-entrada">
-                        <label>Nombre de la Mascota</label>
-                        <input type="text" id="nombre" required placeholder="Ej. Pelusa">
-                    </div>
-                    <div class="grupo-entrada">
-                        <label>Especie</label>
-                        <select id="especie" required>
-                            <option value="Perro">Perro 🐶</option>
-                            <option value="Gato">Gato 🐱</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="fila-doble">
-                    <div class="grupo-entrada">
-                        <label>Raza</label>
-                        <input type="text" id="raza" required placeholder="Ej. Mestizo, Siamés">
-                    </div>
-                    <div class="grupo-entrada">
-                        <label>Edad (Años)</label>
-                        <input type="number" id="edad" required min="0" placeholder="Ej. 1">
-                    </div>
-                </div>
-
-                <div class="grupo-entrada">
-                    <label>Descripción / Historia</label>
-                    <textarea id="descripcion" required placeholder="Cuéntanos un poco sobre su personalidad, temperamento y cuidados especiales..."></textarea>
-                </div>
-
-                <button type="submit">Publicar Mascota 🐾</button>
-            </form>
-
-            <div id="mensajeAlerta" class="alerta"></div>
-        </div>
-    </main>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
-    <script>
-        // Conexión directa con Supabase (el sitio se publica en GitHub Pages, que no
-        // ejecuta backend). La clave publishable es pública por diseño: lo que cada
-        // visitante puede hacer lo limitan las políticas RLS de supabase/setup.sql.
-        // Nunca pongas aquí la service_role key ni la contraseña de la base.
-        const SUPABASE_URL = 'https://ixagbxnskkhbkajlsaqg.supabase.co';
-        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__JdwDHzW1iiCB0W0D126wg_GNxeDlLS';
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-        function escaparHtml(valor) {
-            return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            })[c]);
-        }
-
-        async function cerrarSesion() {
-            await sb.auth.signOut();
-            localStorage.removeItem('usuarioLogueado');
-            window.location.href = 'index.html';
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-                window.location.href = 'index.html';
-                return;
-            }
-            // El rol se consulta en la base, no en localStorage: el navegador no decide quién es admin.
-            const { data: perfil } = await sb
-                .from('perfil').select('nombre_completo, rol').eq('id', session.user.id).maybeSingle();
-            if (perfil?.rol !== 'admin') {
-                alert('Tu cuenta no tiene permisos de administrador.');
-                window.location.href = 'catalogo.html';
-                return;
-            }
-            document.getElementById('nombreUsuario').innerText = `👑 Admin: ${perfil.nombre_completo}`;
-        });
-
-        document.getElementById('mascotaForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nombre = document.getElementById('nombre').value.trim();
-            const especie = document.getElementById('especie').value.toLowerCase();
-            const raza = document.getElementById('raza').value.trim();
-            const edad = parseInt(document.getElementById('edad').value, 10);
-            const descripcion = document.getElementById('descripcion').value.trim();
-            const alerta = document.getElementById('mensajeAlerta');
-            alerta.style.display = 'none';
-
-            const { error } = await sb.from('mascota').insert({ nombre, especie, raza, edad, descripcion });
-
-            if (error) {
-                console.error('Error al registrar la mascota:', error);
-                alerta.innerText = error.code === '42501'
-                    ? 'Tu cuenta no tiene permisos de administrador.'
-                    : 'Error al registrar la mascota. Intenta nuevamente.';
-                alerta.style.backgroundColor = '#fee2e2'; alerta.style.color = '#991b1b'; alerta.style.border = '1px solid #fca5a5'; alerta.style.display = 'block';
-                return;
-            }
-            alerta.innerText = `¡${nombre} ha sido registrado(a) con éxito en el catálogo! ✨`;
-            alerta.style.backgroundColor = '#d1fae5'; alerta.style.color = '#065f46'; alerta.style.border = '1px solid #a7f3d0'; alerta.style.display = 'block';
-            document.getElementById('mascotaForm').reset();
-        });
-    </script>
-</body>
-</html>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Huellas Felices - Administración</title><style>
+*{box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#a7f3d0 0%,#ccfbf1 50%,#f0fdfa 100%);min-height:100vh;color:#0f172a;margin:0}nav{background:#fff;padding:15px 30px;display:flex;justify-content:space-between;align-items:center;gap:15px;box-shadow:0 4px 15px #0d948814}.logo{font-size:22px;font-weight:800;color:#0d9488;cursor:pointer}.usuario-info{display:flex;align-items:center;gap:15px}.nombre-user{font-size:14px;font-weight:600;color:#115e59;background:#ccfbf1;padding:6px 14px;border-radius:20px}.btn-cerrar{background:none;border:0;color:#ef4444;font-weight:bold;cursor:pointer}main{max-width:650px;margin:40px auto;padding:0 20px}.tarjeta-admin{background:white;padding:35px 30px;border-radius:24px;box-shadow:0 10px 30px #0d94881a}h1{margin:0 0 5px;color:#115e59;text-align:center}.subtitulo{color:#0f766e;text-align:center;margin-bottom:30px}.grupo-entrada{margin-bottom:18px}.fila-doble{display:flex;gap:15px}.fila-doble .grupo-entrada{flex:1}label{display:block;font-size:13px;font-weight:700;color:#115e59;margin-bottom:6px;text-transform:uppercase}input,select,textarea{width:100%;padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:15px;background:#f8fafc;font-family:inherit}input:focus,select:focus,textarea:focus{outline:none;border-color:#34d399}textarea{min-height:95px;resize:vertical}button[type=submit]{width:100%;background:#0d9488;color:#fff;border:0;padding:14px;border-radius:14px;font-size:16px;font-weight:bold;cursor:pointer}.alerta{margin-top:15px;padding:14px;border-radius:12px;font-weight:bold;text-align:center;display:none}button:disabled{opacity:.6}@media(max-width:530px){.fila-doble{display:block}nav{padding:14px;flex-wrap:wrap}}
+</style></head><body>
+<nav><div class="logo" onclick="location.href='/catalogo'">🐾 Huellas Felices</div><div class="usuario-info"><span id="nombreUsuario" class="nombre-user">👑 Administración</span><button class="btn-cerrar" onclick="cerrarSesion()">Cerrar sesión</button></div></nav>
+<main><div class="tarjeta-admin"><h1>Agregar Nueva Mascota</h1><p class="subtitulo">Registra una mascota en Supabase para que aparezca en el catálogo público.</p>
+<form id="mascotaForm"><div class="fila-doble"><div class="grupo-entrada"><label for="nombre">Nombre</label><input id="nombre" required placeholder="Ej. Pelusa"></div><div class="grupo-entrada"><label for="especie">Especie</label><select id="especie"><option value="perro">Perro 🐶</option><option value="gato">Gato 🐱</option></select></div></div>
+<div class="fila-doble"><div class="grupo-entrada"><label for="raza">Raza</label><input id="raza" placeholder="Ej. Mestizo"></div><div class="grupo-entrada"><label for="edad">Edad (años)</label><input id="edad" type="number" min="0" required></div></div>
+<div class="grupo-entrada"><label for="descripcion">Descripción / historia</label><textarea id="descripcion" required></textarea></div>
+<div class="grupo-entrada"><label for="foto_url">URL de foto (opcional)</label><input id="foto_url" type="url" placeholder="https://..."></div>
+<button id="publicar" type="submit">Publicar Mascota 🐾</button></form><div id="mensajeAlerta" class="alerta" role="status"></div></div></main>
+<script>
+let sesion;
+try{sesion=JSON.parse(localStorage.getItem('usuarioLogueado')||'null')}catch(e){}
+if(!sesion||!localStorage.getItem('tokenSesion')){location.replace('/')}else if(sesion.rol!=='admin'){location.replace('/catalogo')}else{document.getElementById('nombreUsuario').textContent=`👑 Admin: ${sesion.nombre_completo}`}
+document.getElementById('mascotaForm').addEventListener('submit',async function(e){
+ e.preventDefault();const out=document.getElementById('mensajeAlerta');const btn=document.getElementById('publicar');btn.disabled=true;out.style.display='none';
+ const form={nombre:document.getElementById('nombre').value.trim(),especie:document.getElementById('especie').value,raza:document.getElementById('raza').value.trim(),edad:Number(document.getElementById('edad').value),descripcion:document.getElementById('descripcion').value.trim(),foto_url:document.getElementById('foto_url').value.trim()};
+ try{const r=await fetch('/api/mascotas/registro',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${localStorage.getItem('tokenSesion')||''}`},body:JSON.stringify(form)});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo guardar');out.textContent=`¡${form.nombre} fue registrado correctamente! Abre el catálogo para verlo.`;out.style.background='#d1fae5';out.style.color='#065f46';this.reset()}
+ catch(err){out.textContent=err.message;out.style.background='#fee2e2';out.style.color='#991b1b'}finally{out.style.display='block';btn.disabled=false}
+});
+function cerrarSesion(){localStorage.removeItem('usuarioLogueado');localStorage.removeItem('tokenSesion');location.href='/'}
+</script></body></html>
