@@ -1,305 +1,78 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huellas Felices - Catálogo</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f0fdfa;
-            color: #134e4a;
-        }
-        header {
-            background: #115e59;
-            color: white;
-            padding: 24px 6%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        header h1 { margin: 0; }
-        header button {
-            background: #f87171;
-            border: 0;
-            color: white;
-            padding: 10px 18px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        main { max-width: 1200px; margin: auto; padding: 35px 20px; }
-        .presentacion { text-align: center; margin-bottom: 25px; }
-        .filtros { text-align: center; margin-bottom: 25px; }
-        .filtros button {
-            border: 0;
-            background: #99f6e4;
-            color: #115e59;
-            padding: 10px 18px;
-            margin: 5px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .filtros button.activo { background: #0d9488; color: white; }
-        .catalogo {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 24px;
-        }
-        .animal {
-            background: white;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 5px 16px #0f766e22;
-        }
-        .animal img {
-            width: 100%;
-            height: 210px;
-            object-fit: cover;
-        }
-        .animal-info { padding: 18px; }
-        .animal-info h3 { margin: 0 0 8px; color: #115e59; }
-        .animal-info p { margin: 6px 0; color: #64748b; }
-        .animal-info button, .formulario button {
-            width: 100%;
-            border: 0;
-            border-radius: 10px;
-            padding: 12px;
-            margin-top: 12px;
-            background: #0d9488;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .animal-info button:hover, .formulario button:hover { background: #115e59; }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10;
-            inset: 0;
-            background: #0008;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal.visible { display: flex; }
-        .contenido-modal {
-            background: white;
-            width: 100%;
-            max-width: 520px;
-            max-height: 95vh;
-            overflow-y: auto;
-            border-radius: 18px;
-            padding: 25px;
-            position: relative;
-        }
-        .cerrar {
-            position: absolute;
-            top: 12px;
-            right: 18px;
-            border: 0;
-            background: none;
-            font-size: 28px;
-            color: #64748b;
-            cursor: pointer;
-        }
-        .formulario label {
-            display: block;
-            margin-top: 13px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .formulario input, .formulario textarea {
-            width: 100%;
-            padding: 11px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font: inherit;
-        }
-        .formulario textarea { min-height: 100px; resize: vertical; }
-        #resultado { margin-top: 15px; font-weight: bold; text-align: center; }
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Huellas Felices - Catálogo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f0fdfa;color:#134e4a}header{background:#115e59;color:white;padding:24px 6%;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}header h1{margin:0}header button{background:#f87171;color:white;border:0;padding:10px 18px;border-radius:10px;cursor:pointer}header a{color:#fff;font-weight:bold;text-decoration:none}main{max-width:1200px;margin:auto;padding:35px 20px}.presentacion{text-align:center;margin-bottom:25px}.filtros{text-align:center;margin-bottom:25px}.filtros button{border:0;background:#99f6e4;color:#115e59;padding:10px 18px;margin:5px;border-radius:20px;cursor:pointer;font-weight:bold}.filtros button.activo{background:#0d9488;color:#fff}.catalogo{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}.animal{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 5px 16px #0f766e22}.animal img{width:100%;height:210px;object-fit:cover}.animal-info{padding:18px}.animal-info h3{margin:0 0 8px;color:#115e59}.animal-info p{margin:6px 0;color:#64748b}.animal-info button,.formulario button{width:100%;border:0;border-radius:10px;padding:12px;margin-top:12px;background:#0d9488;color:#fff;font-weight:bold;cursor:pointer}.animal-info button:hover,.formulario button:hover{background:#115e59}.modal{display:none;position:fixed;z-index:10;inset:0;background:#0008;align-items:center;justify-content:center;padding:20px}.modal.visible{display:flex}.contenido-modal{background:#fff;width:100%;max-width:520px;max-height:95vh;overflow-y:auto;border-radius:18px;padding:25px;position:relative}.cerrar{position:absolute;top:12px;right:18px;border:0;background:none;font-size:28px;color:#64748b;cursor:pointer}.formulario label{display:block;margin-top:13px;margin-bottom:5px;font-weight:bold}.formulario input,.formulario textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}.formulario textarea{min-height:100px;resize:vertical}#resultado{margin-top:15px;font-weight:bold;text-align:center}#estadoCatalogo{text-align:center;color:#0f766e;margin-bottom:20px}button:disabled{opacity:.5;cursor:wait}
+</style>
 </head>
 <body>
-    <header>
-        <h1>🐾 Huellas Felices</h1>
-        <button onclick="cerrarSesion()">Cerrar sesión</button>
-    </header>
-
-    <main>
-        <section class="presentacion">
-            <h2>Encuentra a tu nuevo mejor amigo</h2>
-            <p>Conoce nuestros perros y gatos disponibles para adopción.</p>
-        </section>
-
-        <div class="filtros">
-            <button class="activo" onclick="filtrar('todos', this)">Todos</button>
-            <button onclick="filtrar('perro', this)">Perros</button>
-            <button onclick="filtrar('gato', this)">Gatos</button>
-        </div>
-
-        <section id="catalogo" class="catalogo"></section>
-    </main>
-
-    <div id="modal" class="modal">
-        <div class="contenido-modal">
-            <button class="cerrar" onclick="cerrarModal()" aria-label="Cerrar">×</button>
-            <h2>Solicitud de adopción</h2>
-            <p id="mascotaSeleccionada"></p>
-
-            <form id="formAdopcion" class="formulario">
-                <input type="hidden" id="mascota">
-
-                <label for="nombre">Nombre</label>
-                <input id="nombre" name="nombre" type="text" required>
-
-                <label for="celular">Celular</label>
-                <input id="celular" name="celular" type="tel" required>
-
-                <label for="direccion">Dirección</label>
-                <input id="direccion" name="direccion" type="text" required>
-
-                <label for="correo">Correo</label>
-                <input id="correo" name="correo" type="email" required>
-
-                <label for="mensaje">Mensaje</label>
-                <textarea id="mensaje" name="mensaje"
-                    placeholder="Agrega detalles sobre la mascota y tu solicitud..."
-                    required></textarea>
-
-                <button type="submit">Enviar solicitud 🐾</button>
-                <div id="resultado"></div>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
-    <script>
-        // Conexión directa con Supabase (el sitio se publica en GitHub Pages, que no
-        // ejecuta backend). La clave publishable es pública por diseño: lo que cada
-        // visitante puede hacer lo limitan las políticas RLS de supabase/setup.sql.
-        // Nunca pongas aquí la service_role key ni la contraseña de la base.
-        const SUPABASE_URL = 'https://ixagbxnskkhbkajlsaqg.supabase.co';
-        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__JdwDHzW1iiCB0W0D126wg_GNxeDlLS';
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-        function escaparHtml(valor) {
-            return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            })[c]);
-        }
-
-        async function cerrarSesion() {
-            await sb.auth.signOut();
-            localStorage.removeItem('usuarioLogueado');
-            window.location.href = 'index.html';
-        }
-
-        const FOTO_POR_DEFECTO = 'data:image/svg+xml,' + encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect width="100%" height="100%" fill="#ccfbf1"/><text x="50%" y="50%" font-size="120" text-anchor="middle" dominant-baseline="central">🐾</text></svg>'
-        );
-        let animales = [];
-        let tipoActual = 'todos';
-        let mascotaElegida = null;
-
-        async function cargarMascotas() {
-            const catalogo = document.getElementById('catalogo');
-            catalogo.innerHTML = '<p>Cargando mascotas...</p>';
-            const { data, error } = await sb
-                .from('mascota')
-                .select('id_mascota, nombre, especie, raza, edad, foto_url')
-                .eq('estado', 'disponible')
-                .order('id_mascota');
-            if (error) {
-                console.error('Error al cargar las mascotas:', error);
-                catalogo.innerHTML = '<p>No se pudieron cargar las mascotas. Recarga la página para intentarlo de nuevo.</p>';
-                return;
-            }
-            animales = data;
-            mostrarAnimales(tipoActual);
-        }
-
-        function mostrarAnimales(tipo = 'todos') {
-            const lista = animales.filter((a) => tipo === 'todos' || String(a.especie).toLowerCase() === tipo);
-            document.getElementById('catalogo').innerHTML = lista.length
-                ? lista.map((a) => `
-                    <article class="animal">
-                        <img src="${escaparHtml(a.foto_url || FOTO_POR_DEFECTO)}" alt="${escaparHtml(a.nombre)}">
-                        <div class="animal-info">
-                            <h3>${escaparHtml(a.nombre)}</h3>
-                            <p><strong>Especie:</strong> ${escaparHtml(a.especie)}</p>
-                            <p><strong>Raza:</strong> ${escaparHtml(a.raza || 'Sin especificar')}</p>
-                            <p><strong>Edad:</strong> ${escaparHtml(a.edad ?? '?')} año(s)</p>
-                            <button data-id="${a.id_mascota}">Me interesa adoptar</button>
-                        </div>
-                    </article>`).join('')
-                : '<p>No hay mascotas disponibles en esta categoría.</p>';
-        }
-
-        function filtrar(tipo, boton) {
-            document.querySelectorAll('.filtros button').forEach((btn) => btn.classList.remove('activo'));
-            boton.classList.add('activo');
-            tipoActual = tipo;
-            mostrarAnimales(tipo);
-        }
-
-        document.getElementById('catalogo').addEventListener('click', (event) => {
-            const boton = event.target.closest('button[data-id]');
-            if (boton) abrirModal(Number(boton.dataset.id));
-        });
-
-        function abrirModal(idMascota) {
-            mascotaElegida = animales.find((a) => a.id_mascota === idMascota);
-            if (!mascotaElegida) return;
-            document.getElementById('mascota').value = mascotaElegida.nombre;
-            document.getElementById('mascotaSeleccionada').textContent =
-                `Estás solicitando adoptar a: ${mascotaElegida.nombre}`;
-            document.getElementById('resultado').textContent = '';
-            document.getElementById('modal').classList.add('visible');
-        }
-
-        function cerrarModal() {
-            document.getElementById('modal').classList.remove('visible');
-        }
-
-        document.getElementById('formAdopcion').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const resultado = document.getElementById('resultado');
-            const campos = Object.fromEntries(
-                [...new FormData(this)].map(([clave, valor]) => [clave, String(valor).trim()])
-            );
-            const boton = this.querySelector('button[type="submit"]');
-            boton.disabled = true;
-
-            // Sin .select(): un visitante puede enviar solicitudes, pero no leerlas.
-            const { error } = await sb.from('solicitud_adopcion').insert({
-                id_mascota: mascotaElegida?.id_mascota ?? null,
-                mascota: mascotaElegida?.nombre || document.getElementById('mascota').value,
-                nombre: campos.nombre,
-                celular: campos.celular,
-                direccion: campos.direccion,
-                correo: campos.correo,
-                mensaje: campos.mensaje
-            });
-            boton.disabled = false;
-
-            if (error) {
-                console.error('Error al enviar la solicitud:', error);
-                resultado.style.color = '#b91c1c';
-                resultado.textContent = 'No se pudo enviar la solicitud. Intenta nuevamente.';
-                return;
-            }
-            resultado.style.color = '#047857';
-            resultado.textContent = 'Solicitud enviada correctamente. ¡Gracias!';
-            this.reset();
-        });
-
-        cargarMascotas();
-    </script>
-</body>
-</html>
+<header><h1>🐾 Huellas Felices</h1><a id="enlaceAdmin" href="/admin" style="display:none">Administrar mascotas</a><button onclick="cerrarSesion()">Cerrar sesión</button></header>
+<main><section class="presentacion"><h2>Encuentra a tu nuevo mejor amigo</h2><p>Conoce nuestros perros y gatos disponibles para adopción.</p></section>
+<div class="filtros"><button class="activo" onclick="filtrar('todos',this)">Todos</button><button onclick="filtrar('perro',this)">Perros</button><button onclick="filtrar('gato',this)">Gatos</button></div>
+<p id="estadoCatalogo"></p><section id="catalogo" class="catalogo"></section></main>
+<div id="modal" class="modal"><div class="contenido-modal"><button class="cerrar" onclick="cerrarModal()" aria-label="Cerrar">×</button><h2>Solicitud de adopción</h2><p id="mascotaSeleccionada"></p>
+<form id="formAdopcion" class="formulario"><input type="hidden" id="mascota" name="mascota"><input type="hidden" id="id_mascota" name="id_mascota">
+<label for="nombre">Nombre</label><input id="nombre" name="nombre" required>
+<label for="celular">Celular</label><input id="celular" name="celular" type="tel" required>
+<label for="direccion">Dirección</label><input id="direccion" name="direccion" required>
+<label for="correo">Correo</label><input id="correo" name="correo" type="email" required>
+<label for="mensaje">Mensaje</label><textarea id="mensaje" name="mensaje" required placeholder="Agrega detalles sobre la mascota y tu solicitud..."></textarea>
+<button type="submit">Enviar solicitud 🐾</button><div id="resultado" role="status"></div></form></div></div>
+<script>
+const demo=[
+['Luna','perro','Labrador',2,'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600'],
+['Max','perro','Pastor alemán',3,'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600'],
+['Coco','perro','Beagle',1,'https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=600'],
+['Rocky','perro','Boxer',4,'https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?q=80&w=580&auto=format&fit=crop'],
+['Nala','perro','Golden retriever',2,'https://images.unsplash.com/photo-1558788353-f76d92427f16?w=600'],
+['Toby','perro','Mestizo',5,'https://images.unsplash.com/photo-1735989967755-706e5edcb44b?q=80&w=580&auto=format&fit=crop'],
+['Maya','perro','Husky',3,'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600'],
+['Bruno','perro','Bulldog',4,'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600'],
+['Simba','perro','Cocker spaniel',2,'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=600'],
+['Daisy','perro','Poodle',1,'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600'],
+['Michi','gato','Gato doméstico',2,'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600'],
+['Pelusa','gato','Persa',3,'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=600'],
+['Oliver','gato','Atigrado',1,'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=600'],
+['Milo','gato','Siamés',2,'https://images.unsplash.com/photo-1561948955-570b270e7c36?w=600'],
+['Canela','gato','Carey',4,'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=600'],
+['Tom','gato','Mestizo',5,'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=600'],
+['Lola','gato','Angora',2,'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600'],
+['Nina','gato','Gato blanco',1,'https://images.unsplash.com/photo-1495366822987-7c75f0fcbab4?w=600'],
+['Simón','gato','Gato negro',3,'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=600'],
+['Cleo','gato','Gato tricolor',2,'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=600']
+].map(([nombre,especie,raza,edad,imagen])=>({nombre,especie,raza,edad,imagen,id:null}));
+const fallback='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect width="100%" height="100%" fill="#ccfbf1"/><text x="50%" y="50%" font-size="100" text-anchor="middle" dominant-baseline="central">🐾</text></svg>');
+let reales=[];let filtroActual='todos';
+const especie=v=>String(v||'').trim().toLowerCase();
+function tarjeta(a){
+ const card=document.createElement('article');card.className='animal';
+ const img=document.createElement('img');img.src=a.imagen||fallback;img.alt=a.nombre;img.loading='lazy';img.onerror=()=>{img.onerror=null;img.src=fallback};card.append(img);
+ const info=document.createElement('div');info.className='animal-info';
+ const h=document.createElement('h3');h.textContent=a.nombre;info.append(h);
+ for(const [key,value] of [['Especie',a.especie],['Raza',a.raza||'Sin especificar'],['Edad',`${a.edad??'No indicada'} año(s)`]]){let p=document.createElement('p'),strong=document.createElement('strong');strong.textContent=key+': ';p.append(strong,document.createTextNode(String(value)));info.append(p)}
+ const b=document.createElement('button');b.textContent='Me interesa adoptar';b.addEventListener('click',()=>abrirModal(a));info.append(b);card.append(info);return card;
+}
+function mostrarAnimales(tipo=filtroActual){filtroActual=tipo;const lista=[...demo,...reales].filter(a=>tipo==='todos'||especie(a.especie)===tipo);document.getElementById('catalogo').replaceChildren(...lista.map(tarjeta));}
+function filtrar(tipo,boton){document.querySelectorAll('.filtros button').forEach(b=>b.classList.remove('activo'));boton.classList.add('activo');mostrarAnimales(tipo)}
+async function cargarMascotas(){
+ const estado=document.getElementById('estadoCatalogo');
+ try{const r=await fetch('/api/mascotas');if(!r.ok)throw new Error(`HTTP ${r.status}`);const datos=await r.json();if(!Array.isArray(datos))throw new Error('Respuesta inesperada');
+ reales=datos.filter(a=>especie(a.estado)!=='adoptada').map(a=>({id:Number(a.id_mascota),nombre:a.nombre,especie:a.especie,edad:a.edad,raza:a.raza||(a.descripcion||'').match(/^Raza: ([^\n]+)/)?.[1]||'Sin especificar',imagen:a.foto_url||''}));
+ estado.textContent=reales.length?`${reales.length} mascota(s) de Supabase, además de las 20 mascotas de ejemplo.`:'Catálogo de demostración: todavía no hay mascotas registradas en Supabase.';
+ }catch(e){console.error('Catálogo:',e);estado.textContent='No se pudieron consultar las mascotas reales. Mostrando catálogo de demostración.'}
+ mostrarAnimales();
+}
+function abrirModal(a){document.getElementById('mascota').value=a.nombre;document.getElementById('id_mascota').value=a.id??'';document.getElementById('mascotaSeleccionada').textContent=`Estás solicitando adoptar a: ${a.nombre}`;document.getElementById('resultado').textContent='';document.getElementById('modal').classList.add('visible')}
+function cerrarModal(){document.getElementById('modal').classList.remove('visible')}
+document.getElementById('formAdopcion').addEventListener('submit',async function(e){
+ e.preventDefault();const out=document.getElementById('resultado');const token=localStorage.getItem('tokenSesion');if(!token){out.style.color='#b91c1c';out.textContent='Inicia sesión nuevamente antes de enviar la solicitud.';return}
+ const btn=this.querySelector('button[type=submit]');btn.disabled=true;
+ try{const r=await fetch('/api/solicitudes/adopcion',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(Object.fromEntries(new FormData(this)))});const d=await r.json();if(!r.ok)throw new Error(d.error||'No se pudo guardar la solicitud');out.style.color='#047857';out.textContent='Solicitud guardada correctamente en Supabase.';this.reset()}
+ catch(e){out.style.color='#b91c1c';out.textContent=e.message}finally{btn.disabled=false}
+});
+function cerrarSesion(){localStorage.removeItem('usuarioLogueado');localStorage.removeItem('tokenSesion');location.href='/'}
+try{const u=JSON.parse(localStorage.getItem('usuarioLogueado')||'null');if(u?.rol==='admin')document.getElementById('enlaceAdmin').style.display='inline'}catch(e){}
+mostrarAnimales();cargarMascotas();
+</script></body></html>

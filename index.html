@@ -89,26 +89,24 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
     <script>
-        // Conexión directa con Supabase (el sitio se publica en GitHub Pages, que no
-        // ejecuta backend). La clave publishable es pública por diseño: lo que cada
-        // visitante puede hacer lo limitan las políticas RLS de supabase/setup.sql.
-        // Nunca pongas aquí la service_role key ni la contraseña de la base.
-        const SUPABASE_URL = 'https://ixagbxnskkhbkajlsaqg.supabase.co';
-        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__JdwDHzW1iiCB0W0D126wg_GNxeDlLS';
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
 
-        function escaparHtml(valor) {
-            return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            })[c]);
+        function apiUrl(path) {
+            return `${API_BASE}${path}`;
         }
 
-        async function cerrarSesion() {
-            await sb.auth.signOut();
-            localStorage.removeItem('usuarioLogueado');
-            window.location.href = 'index.html';
+        async function leerRespuesta(respuesta) {
+            const texto = await respuesta.text();
+            if (!texto) return {};
+
+            try {
+                return JSON.parse(texto);
+            } catch (error) {
+                return { error: texto };
+            }
         }
 
         function mostrarRegistro() {
@@ -123,102 +121,83 @@
             document.getElementById('alertaRegistro').style.display = 'none';
         }
 
-        function mostrarAlerta(alerta, mensaje, exito) {
+        function mostrarError(alerta, mensaje) {
             alerta.innerText = mensaje;
-            alerta.style.backgroundColor = exito ? '#d1fae5' : '#fee2e2';
-            alerta.style.color = exito ? '#065f46' : '#991b1b';
-            alerta.style.border = exito ? '1px solid #a7f3d0' : '1px solid #fca5a5';
+            alerta.style.backgroundColor = '#fee2e2';
+            alerta.style.color = '#991b1b';
+            alerta.style.border = '1px solid #fca5a5';
             alerta.style.display = 'block';
-        }
-
-        function mensajeDeError(error) {
-            if (error?.name === 'AuthRetryableFetchError' || /fetch/i.test(error?.message || '')) {
-                return 'Error de conexión. Revisa tu internet e intenta de nuevo.';
-            }
-            const porCodigo = {
-                invalid_credentials: 'Credenciales incorrectas.',
-                email_not_confirmed: 'Primero confirma tu correo: abre el enlace que te enviamos (revisa también la carpeta de spam).',
-                user_already_exists: 'Ya existe una cuenta con ese correo.',
-                email_exists: 'Ya existe una cuenta con ese correo.',
-                weak_password: 'La contraseña es muy débil. Usa al menos 8 caracteres.',
-                email_address_invalid: 'Ingresa un correo electrónico válido.',
-                email_address_not_authorized: 'No se pudo enviar el correo de confirmación a esa dirección. Avisa al administrador del sitio.',
-                over_email_send_rate_limit: 'Se enviaron demasiados correos. Espera unos minutos e intenta de nuevo.',
-                over_request_rate_limit: 'Demasiados intentos. Espera unos minutos e intenta de nuevo.'
-            };
-            return porCodigo[error?.code] || error?.message || 'Ocurrió un error inesperado. Intenta nuevamente.';
         }
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const correo = document.getElementById('correoLogin').value.trim().toLowerCase();
+            const correo = document.getElementById('correoLogin').value.trim();
             const contrasena = document.getElementById('contrasenaLogin').value;
             const alerta = document.getElementById('alertaLogin');
             alerta.style.display = 'none';
 
-            const { data, error } = await sb.auth.signInWithPassword({ email: correo, password: contrasena });
-            if (error) {
-                console.error('Error al iniciar sesión:', error);
-                return mostrarAlerta(alerta, mensajeDeError(error), false);
+            try {
+                const respuesta = await fetch(apiUrl('/api/usuarios/login'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo, contrasena })
+                });
+
+                const datos = await leerRespuesta(respuesta);
+
+                if (respuesta.ok) {
+                    alerta.innerText = `¡Bienvenido(a), ${datos.usuario?.nombre_completo || 'usuario'}! ✨`;
+                    alerta.style.backgroundColor = '#d1fae5';
+                    alerta.style.color = '#065f46';
+                    alerta.style.border = '1px solid #a7f3d0';
+                    alerta.style.display = 'block';
+                    localStorage.setItem('usuarioLogueado', JSON.stringify(datos.usuario));
+                    localStorage.setItem('tokenSesion', datos.token);
+                    setTimeout(() => { window.location.href = '/catalogo'; }, 1500);
+                } else {
+                    mostrarError(alerta, datos.error || datos.message || `Error ${respuesta.status}: ${respuesta.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                mostrarError(alerta, 'Error de conexión con el servidor. Revisa que el backend esté corriendo.');
             }
-
-            const { data: perfil, error: errorPerfil } = await sb
-                .from('perfil').select('nombre_completo, rol').eq('id', data.user.id).maybeSingle();
-            if (errorPerfil) console.error('No se pudo leer el perfil:', errorPerfil);
-
-            const usuario = {
-                id: data.user.id,
-                correo: data.user.email,
-                nombre_completo: perfil?.nombre_completo || data.user.user_metadata?.nombre_completo || 'usuario',
-                rol: perfil?.rol || 'usuario'
-            };
-            localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
-            mostrarAlerta(alerta, `¡Bienvenido(a), ${usuario.nombre_completo}! ✨`, true);
-            setTimeout(() => {
-                window.location.href = usuario.rol === 'admin' ? 'admin.html' : 'catalogo.html';
-            }, 1500);
         });
 
         document.getElementById('registroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nombre = document.getElementById('nombreRegistro').value.trim();
             const apellido = document.getElementById('apellidoRegistro').value.trim();
-            const correo = document.getElementById('correoRegistro').value.trim().toLowerCase();
+            const correo = document.getElementById('correoRegistro').value.trim();
             const contrasena = document.getElementById('contrasenaRegistro').value;
             const alerta = document.getElementById('alertaRegistro');
             alerta.style.display = 'none';
 
-            if (contrasena.length < 8) {
-                return mostrarAlerta(alerta, 'La contraseña debe tener al menos 8 caracteres.', false);
-            }
+            try {
+                const respuesta = await fetch(apiUrl('/api/usuarios/registro'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre_completo: `${nombre} ${apellido}`,
+                        correo,
+                        contrasena
+                    })
+                });
 
-            const { data, error } = await sb.auth.signUp({
-                email: correo,
-                password: contrasena,
-                options: {
-                    data: { nombre_completo: `${nombre} ${apellido}`.trim() },
-                    // A dónde vuelve el enlace de confirmación del correo.
-                    emailRedirectTo: window.location.href.split(/[?#]/)[0]
+                const datos = await leerRespuesta(respuesta);
+
+                if (respuesta.ok) {
+                    alerta.innerText = '¡Cuenta creada con éxito! Redirigiendo... ✨';
+                    alerta.style.backgroundColor = '#d1fae5';
+                    alerta.style.color = '#065f46';
+                    alerta.style.border = '1px solid #a7f3d0';
+                    alerta.style.display = 'block';
+                    setTimeout(() => { mostrarLogin(); }, 1500);
+                } else {
+                    mostrarError(alerta, datos.error || datos.message || `Error ${respuesta.status}: ${respuesta.statusText}`);
                 }
-            });
-            if (error) {
-                console.error('Error al registrar:', error);
-                return mostrarAlerta(alerta, mensajeDeError(error), false);
-            }
-            // Con la confirmación por correo activada, Supabase no revela si el correo
-            // ya existía: devuelve un usuario sin identidades.
-            if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-                return mostrarAlerta(alerta, 'Ya existe una cuenta con ese correo.', false);
-            }
-
-            document.getElementById('registroForm').reset();
-            if (data.session) {
-                // Confirmación por correo desactivada: la cuenta ya está activa.
-                await sb.auth.signOut();
-                mostrarAlerta(alerta, '¡Cuenta creada con éxito! Ahora inicia sesión. ✨', true);
-                setTimeout(mostrarLogin, 1500);
-            } else {
-                mostrarAlerta(alerta, `¡Cuenta creada! Te enviamos un correo a ${correo}. Abre el enlace para confirmarla y luego inicia sesión.`, true);
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                mostrarError(alerta, 'Error de conexión con el servidor.');
             }
         });
     </script>
