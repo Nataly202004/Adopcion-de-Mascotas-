@@ -18,7 +18,7 @@
         .fila-doble { display: flex; gap: 15px; }
         .fila-doble .grupo-entrada { flex: 1; }
         label { display: block; font-size: 12.5px; font-weight: 700; color: #115e59; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        input { width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 14.5px; color: #1e293b; background-color: #f8fafc; transition: all 0.2s ease; }
+        input { width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 14.5px; color: #1e293b; background-color: #f8fafc; transition: all 0.2s; }
         input:focus { outline: none; border-color: #34d399; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
         button { width: 100%; background: #0d9488; color: white; border: none; padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
         button:hover { background: #115e59; }
@@ -89,13 +89,26 @@
         </div>
     </div>
 
-      <script>
-        // Configuración de tu Backend de producción en Vercel
-        const API_BASE = 'https://adopcion-de-mascotas-seven.vercel.app';
-
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : (window.location.origin && window.location.origin.includes('vercel.app'))
+                ? window.location.origin
+                : 'https://adopcion-de-mascotas-seven.vercel.app';
 
         function apiUrl(path) {
             return `${API_BASE}${path}`;
+        }
+
+        async function leerRespuesta(respuesta) {
+            const texto = await respuesta.text();
+            if (!texto) return {};
+
+            try {
+                return JSON.parse(texto);
+            } catch (error) {
+                return { error: texto };
+            }
         }
 
         function mostrarRegistro() {
@@ -103,6 +116,7 @@
             document.getElementById('seccionRegistro').style.display = 'block';
             document.getElementById('alertaLogin').style.display = 'none';
         }
+
         function mostrarLogin() {
             document.getElementById('seccionRegistro').style.display = 'none';
             document.getElementById('seccionLogin').style.display = 'block';
@@ -131,10 +145,10 @@
                     body: JSON.stringify({ correo, contrasena })
                 });
 
-                const datos = await respuesta.json();
+                const datos = await leerRespuesta(respuesta);
 
                 if (respuesta.ok) {
-                    alerta.innerText = `¡Bienvenido(a), ${datos.usuario.nombre_completo}! ✨`;
+                    alerta.innerText = `¡Bienvenido(a), ${datos.usuario?.nombre_completo || 'usuario'}! ✨`;
                     alerta.style.backgroundColor = '#d1fae5';
                     alerta.style.color = '#065f46';
                     alerta.style.border = '1px solid #a7f3d0';
@@ -142,11 +156,11 @@
                     localStorage.setItem('usuarioLogueado', JSON.stringify(datos.usuario));
                     setTimeout(() => { window.location.href = './catalogo.html'; }, 1500);
                 } else {
-                    mostrarError(alerta, datos.error || 'Credenciales incorrectas');
+                    mostrarError(alerta, datos.error || datos.message || `Error ${respuesta.status}: ${respuesta.statusText}`);
                 }
             } catch (error) {
                 console.error('Error de conexión:', error);
-                mostrarError(alerta, 'Error de conexión. Revisa que el servidor esté ejecutándose.');
+                mostrarError(alerta, 'Error de conexión con el servidor. Revisa que el backend esté corriendo.');
             }
         });
 
@@ -163,14 +177,14 @@
                 const respuesta = await fetch(apiUrl('/api/usuarios/registro'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        nombre_completo: `${nombre} ${apellido}`, 
-                        correo, 
-                        contrasena 
+                    body: JSON.stringify({
+                        nombre_completo: `${nombre} ${apellido}`,
+                        correo,
+                        contrasena
                     })
                 });
 
-                const datos = await respuesta.json();
+                const datos = await leerRespuesta(respuesta);
 
                 if (respuesta.ok) {
                     alerta.innerText = '¡Cuenta creada con éxito! Redirigiendo... ✨';
@@ -180,7 +194,7 @@
                     alerta.style.display = 'block';
                     setTimeout(() => { mostrarLogin(); }, 1500);
                 } else {
-                    mostrarError(alerta, datos.error || 'No se pudo crear la cuenta');
+                    mostrarError(alerta, datos.error || datos.message || `Error ${respuesta.status}: ${respuesta.statusText}`);
                 }
             } catch (error) {
                 console.error('Error de conexión:', error);
