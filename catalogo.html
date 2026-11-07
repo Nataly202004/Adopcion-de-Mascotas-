@@ -179,6 +179,32 @@
     </div>
 
     <script>
+        // Dónde está el backend:
+        // - En local (Live Server, etc.): el servidor de desarrollo en el puerto 3000.
+        // - En GitHub Pages (solo sirve archivos estáticos): el despliegue de Vercel.
+        // - En cualquier otro caso (Vercel, Render): el mismo dominio que sirve la página.
+        const BACKEND_PRODUCCION = 'https://adopcion-de-mascotas-seven.vercel.app';
+        const ES_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        const API_BASE = ES_LOCAL && window.location.port !== '3000'
+            ? 'http://localhost:3000'
+            : window.location.hostname.endsWith('github.io')
+                ? BACKEND_PRODUCCION
+                : window.location.origin;
+        // Si el backend no sirve esta página, sus rutas (/catalogo, /admin) no existen
+        // y hay que navegar por nombre de archivo.
+        const SERVIDA_POR_BACKEND = API_BASE === window.location.origin;
+
+        function apiUrl(path) {
+            return `${API_BASE}${path}`;
+        }
+
+        function irA(pagina) {
+            const rutas = SERVIDA_POR_BACKEND
+                ? { inicio: '/', catalogo: '/catalogo', admin: '/admin' }
+                : { inicio: 'index.html', catalogo: 'catalogo.html', admin: 'admin.html' };
+            window.location.href = rutas[pagina];
+        }
+
         const animales = [
             ['Luna', 'perro', 'Labrador', 2, 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600'],
             ['Max', 'perro', 'Pastor alemán', 3, 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600'],
@@ -253,7 +279,7 @@
             const resultado = document.getElementById('resultado');
 
             try {
-                const respuesta = await fetch('/api/solicitudes/adopcion', {
+                const respuesta = await fetch(apiUrl('/api/solicitudes/adopcion'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(datos)
@@ -272,7 +298,7 @@
 
         function cerrarSesion() {
             localStorage.removeItem('usuarioLogueado');
-            window.location.href = '/';
+            irA('inicio');
         }
 
         mostrarAnimales();

@@ -90,12 +90,30 @@
     </div>
 
     <script>
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        // Dónde está el backend:
+        // - En local (Live Server, etc.): el servidor de desarrollo en el puerto 3000.
+        // - En GitHub Pages (solo sirve archivos estáticos): el despliegue de Vercel.
+        // - En cualquier otro caso (Vercel, Render): el mismo dominio que sirve la página.
+        const BACKEND_PRODUCCION = 'https://adopcion-de-mascotas-seven.vercel.app';
+        const ES_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        const API_BASE = ES_LOCAL && window.location.port !== '3000'
             ? 'http://localhost:3000'
-            : window.location.origin;
+            : window.location.hostname.endsWith('github.io')
+                ? BACKEND_PRODUCCION
+                : window.location.origin;
+        // Si el backend no sirve esta página, sus rutas (/catalogo, /admin) no existen
+        // y hay que navegar por nombre de archivo.
+        const SERVIDA_POR_BACKEND = API_BASE === window.location.origin;
 
         function apiUrl(path) {
             return `${API_BASE}${path}`;
+        }
+
+        function irA(pagina) {
+            const rutas = SERVIDA_POR_BACKEND
+                ? { inicio: '/', catalogo: '/catalogo', admin: '/admin' }
+                : { inicio: 'index.html', catalogo: 'catalogo.html', admin: 'admin.html' };
+            window.location.href = rutas[pagina];
         }
 
         async function leerRespuesta(respuesta) {
@@ -152,7 +170,7 @@
                     alerta.style.border = '1px solid #a7f3d0';
                     alerta.style.display = 'block';
                     localStorage.setItem('usuarioLogueado', JSON.stringify(datos.usuario));
-                    setTimeout(() => { window.location.href = '/catalogo'; }, 1500);
+                    setTimeout(() => { irA('catalogo'); }, 1500);
                 } else {
                     mostrarError(alerta, datos.error || datos.message || `Error ${respuesta.status}: ${respuesta.statusText}`);
                 }
